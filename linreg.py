@@ -20,7 +20,7 @@ import statsmodels.api as sm
 
 class linreg:
     """ Linear Regression Class
-    
+
     """
 # =============================================================================
 #     Initiatlize attributes
@@ -39,7 +39,7 @@ class linreg:
 
     def preprocessing_features(self):
         self.scaler = preprocessing.StandardScaler()
-        self.df_X_scaled = scaler.fit_transform(self.df_X)
+        self.df_X_scaled = self.scaler.fit_transform(self.df_X)
 
     def transf_features(self, X):
         X_transf = self.scaler.transform(X)
@@ -47,14 +47,14 @@ class linreg:
 
     def poly_features(self):
 
-        poly_reg = PolynomialFeatures(degree=order)
+        poly_reg = PolynomialFeatures(degree=self.order)
         X_poly = poly_reg.fit_transform(self.df_X_scaled)
         feat_names = poly_reg.get_feature_names()
         self.df_X_poly = pd.DataFrame(data=X_poly, columns=feat_names)
 
     def split_features(self):
         self.df_X_train, self.df_X_test, self.df_Y_train, self.df_Y_test = ...
-        train_test_split(df_X_poly, df_Y, test_size=split, random_state=
+        train_test_split(self.df_X_poly, self.df_Y, test_size=self.split, random_state=
                          time.time())
         self.num_pts_total, self.num_feat = self.df_X_poly.shape
         self.num_pts_train, _ = self.df_X_train.shape
@@ -113,5 +113,5 @@ class linreg:
         diff_Y = Y-mean_Y
         S = np.sum(diff_X*diff_Y)
         return S
-    
-    
+
+
