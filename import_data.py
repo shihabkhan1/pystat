@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import pickle as pkl
 
-def import_data(file, skipr=None, headr=None, colindex=None):
+def import_data(file, *args, **kwargs):
     """
     This function can import data from an excel or a csv file and return a
     pandas dataframe.
@@ -38,8 +38,9 @@ def import_data(file, skipr=None, headr=None, colindex=None):
 
     """
     if file.endswith('.xlsx'):
-        dfs = pd.read_excel(file, skiprows=skipr, header=headr,\
-                             index_col=colindex, sheet_name=None)
+        dfs = pd.read_excel(file, *args, **kwargs)
+        # dfs = pd.read_excel(file, skiprows=skipr, header=headr,\
+                             # index_col=colindex, sheet_name=None)
     elif file.endswith('.csv'):
         pass
     else:
