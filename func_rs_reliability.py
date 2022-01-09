@@ -8,9 +8,40 @@ Created on Mon Oct 26 15:08:00 2020
 """
 import numpy as np
 # from logn_params import *
-import PyRe as pr
+import pyre as pr
+import scipy.stats as st
 
-def rel(param_lnR, param_lnS, rate=0.01, time=0.0, degtype=1.0):
+def deg_ri(param_lnR, time=0.0, rate=0.01, degtype=1.0):
+    sig_lnR0 = param_lnR[0]*param_lnR[1]
+    mean = param_lnR[0] + np.log((1-rate*time**degtype))
+    return [mean, sig_lnR0/mean]
+
+def calibrate_ri(param_lnR, param_lnS, pf, time=0.0, rate=0.01, degtype=1.0):
+    sig_lnR0 = param_lnR[0]*param_lnR[1]
+    sig_lnS = param_lnS[0]*param_lnS[1]
+    mu_lnR0 = param_lnS[0] - np.log((1-rate*time**degtype)) - st.norm.ppf(pf)\
+        * np.sqrt(sig_lnR0**2 + sig_lnS**2)
+    # return [mu_lnR0[0], param_lnR[1]]
+    return [mu_lnR0[0], sig_lnR0/mu_lnR0[0]]
+
+
+def rel_cac(param_lnR, param_lnS, time=0.0, rate=0.01, degtype=1.0):
+    k = rate
+    t = time
+    nu = degtype
+    lnR00, lnR0cv = param_lnR
+    lnR0s = lnR00*lnR0cv
+    lnS00, lnS0cv = param_lnS
+    lnS0s = lnS00*lnS0cv
+
+    beta = (lnR00 + np.log(1-k*t**nu) - lnS00)/(np.sqrt(lnR0s**2 +
+                                                        lnS0s**2))
+    pf = st.norm.cdf(-beta)
+    analysis = [pf, beta]
+    return analysis
+
+
+def rel(param_lnR, param_lnS, time=0.0, rate=0.01, degtype=1.0):
     """
     This function estimates the probability of failure for an R-S problem
     with lognormally distributed random variables.
@@ -56,6 +87,8 @@ def rel(param_lnR, param_lnS, rate=0.01, time=0.0, degtype=1.0):
     # Set some options (optional)
     options = pr.AnalysisOptions()
     # options.printResults(False)
+    # options.print_output = False
+    # options.samples = int(2e6)
 
     stochastic_model = pr.StochasticModel()
     # Define random variables
@@ -65,6 +98,18 @@ def rel(param_lnR, param_lnS, rate=0.01, time=0.0, degtype=1.0):
     # Performe FORM analysis
     Analysis = pr.Form(analysis_options=options,
                     stochastic_model=stochastic_model, limit_state=limit_state)
+
+    # # Perform Crude Monte Carlo Simulation
+    # Analysis = pr.CrudeMonteCarlo(
+    #     analysis_options=options, stochastic_model=stochastic_model, limit_state=limit_state)
+
+    # # Perform Importance Sampling
+    # Analysis = pr.ImportanceSampling(
+    #     analysis_options=options, stochastic_model=stochastic_model, limit_state=limit_state)
+
+    # # Perform SORM
+    # Analysis = pr.Sorm(
+    #     analysis_options=options, stochastic_model=stochastic_model, limit_state=limit_state)
 
     return Analysis
 
